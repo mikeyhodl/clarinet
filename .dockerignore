@@ -1,2 +1,5 @@
 target/
 examples/
+Dockerfile
+.dockerignore
+.git*
