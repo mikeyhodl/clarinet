@@ -241,6 +241,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/master')
     needs:
       - audit
       - dist
