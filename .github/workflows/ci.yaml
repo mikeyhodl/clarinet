@@ -106,7 +106,7 @@ jobs:
           ../../target/debug/clarinet test .
 
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v1
+        uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: lcov.info
