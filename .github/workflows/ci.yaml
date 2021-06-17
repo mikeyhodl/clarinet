@@ -31,20 +31,20 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  rust-audit:
+  audit:
     name: Audit Rust vulnerabilities
     runs-on: ubuntu-latest
     needs: pre_run
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
 
       - name: Set Cargo file permissions
         run: sudo chown -R $(whoami):$(id -ng) ~/.cargo/
@@ -61,8 +61,58 @@ jobs:
       - name: Run audit
         run: cargo audit
 
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    needs: pre_run
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: llvm-tools-preview
+          override: true
+
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install dependencies
+        run: cargo install grcov
+
+      - name: Unit Tests
+        env:
+          RUSTFLAGS: "-Zinstrument-coverage"
+          LLVM_PROFILE_FILE: "clarinet-%p-%m.profraw"
+        run: cargo test
+
+      - name: Generate coverage
+        run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+
+      - name: Functional Tests
+        run: |
+          cd examples/counter
+          ../../target/debug/clarinet test .
+
+      - name: Upload coverage report
+        uses: coverallsapp/github-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: lcov.info
+
   dist:
-    name: Build distributions & test
+    name: Build distributions
     runs-on: ${{ matrix.os }}
     needs: pre_run
     # Related upstream issue:
@@ -119,7 +169,7 @@ jobs:
       - name: Functional Tests
         run: |
           cd examples/counter
-          ../../target/debug/clarinet test .
+          ../../target/release/clarinet test .
 
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
       - name: Prepare cache
@@ -191,7 +241,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - audit
+      - dist
+      - build
     outputs:
       version: ${{ steps.docker_meta.outputs.version }}
     steps:
