@@ -95,7 +95,7 @@ jobs:
         env:
           RUSTFLAGS: "-Zinstrument-coverage"
           LLVM_PROFILE_FILE: "clarinet-%p-%m.profraw"
-        run: cargo test
+        run: cargo build && cargo test
 
       - name: Generate coverage
         run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
