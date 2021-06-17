@@ -245,6 +245,7 @@ jobs:
     needs:
       - audit
       - dist
+      - test
       - build
     outputs:
       version: ${{ steps.docker_meta.outputs.version }}
