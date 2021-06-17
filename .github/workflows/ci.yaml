@@ -162,7 +162,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
 
       - name: Docker meta
         id: docker_meta
