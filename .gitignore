@@ -2,3 +2,5 @@
 /xtask/target
 .DS_Store
 clarinet.code-workspace
+node_modules
+package-lock.json
