@@ -131,12 +131,24 @@ jobs:
           - os: ubuntu-latest
             platform: linux-x64
             target: x86_64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   platform: linux-arm64
+          #   target: aarch64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   platform: linux-armv7
+          #   target: armv7-unknown-linux-gnueabihf
+          # - os: ubuntu-latest
+          #   platform: linux-musl-x64
+          #   target: x86_64-unknown-linux-musl
           - os: windows-latest
             platform: windows-x64
             target: x86_64-pc-windows-msvc
           - os: macos-latest
             platform: macos-x64
             target: x86_64-apple-darwin
+          # - os: macos-latest
+          #   platform: macos-aarch64-m1
+          #   target: aarch64-apple-darwin
 
     steps:
       - name: Checkout repository
@@ -176,8 +188,11 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - name: Compress artifact
-        run: zip --junk-paths ${{ matrix.platform }} target/${{ matrix.target }}/release/clarinet
+      - uses: papeloto/action-zip@v1
+        with:
+          files: target/${{ matrix.target }}/release/clarinet
+          recursive: false
+          dest: ${{ matrix.platform }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -188,16 +203,9 @@ jobs:
       - name: Unit Tests
         run: cargo test --release --locked --target ${{ matrix.target }}
 
-      - name: Functional Tests (Not Windows)
-        if: matrix.os != 'windows-latest'
+      - name: Functional Tests
         working-directory: examples/counter
         run: ../../target/${{ matrix.target }}/release/clarinet test .
-
-      - name: Functional Tests (Windows)
-        if: matrix.os == 'windows-latest'
-        working-directory: examples/counter
-        run: ../../target/${{ matrix.target }}/release/clarinet test .
-        shell: pwsh -command {0}
 
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
       - name: Prepare cache

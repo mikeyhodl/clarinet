@@ -1,4 +1,3 @@
-
 ;; counter
 ;; let's get started with smart contracts
 (define-data-var counter uint u1)
