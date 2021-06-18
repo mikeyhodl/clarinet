@@ -194,6 +194,9 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
+      - run: ls target
+      - run: ls target/*
+
       - uses: papeloto/action-zip@v1
         with:
           files: target/${{ matrix.target }}/release/clarinet
