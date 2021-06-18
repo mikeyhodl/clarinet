@@ -176,6 +176,15 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
+      - name: Compress artifact
+        run: zip --junk-paths ${{ matrix.platform }} target/${{ matrix.target }}/release/clarinet
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.platform }}
+          path: ${{ matrix.platform }}.zip
+
       - name: Unit Tests
         run: cargo test --release --locked --target ${{ matrix.target }}
 
@@ -188,16 +197,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: examples/counter
         run: ../../target/${{ matrix.target }}/release/clarinet test .
-        shell: cmd
-
-      - name: Compress artifact
-        run: zip --junk-paths ${{ matrix.platform }} target/${{ matrix.target }}/release/clarinet
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.platform }}
-          path: ${{ matrix.platform }}.zip
+        shell: pwsh -command {0}
 
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
       - name: Prepare cache
