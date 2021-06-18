@@ -133,7 +133,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             platform: windows-x64
-            target: x86_64-pc-windows-gnu
+            target: x86_64-pc-windows-msvc
           - os: macos-latest
             platform: macos-x64
             target: x86_64-apple-darwin
@@ -155,7 +155,7 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.target }}
-          # profile: minimal
+          profile: minimal
           override: true
           components: rustfmt, rust-src
 
