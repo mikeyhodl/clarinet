@@ -1,6 +1,6 @@
 
 ;; counter
-;; lets get started with smart contracts
+;; let's get started with smart contracts
 (define-data-var counter uint u1)
 
 (define-public (increment (step uint))
