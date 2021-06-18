@@ -188,7 +188,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: examples/counter
         run: ../../target/${{ matrix.target }}/release/clarinet test .
-        shell: pwsh -command {0}
+        shell: cmd
 
       - name: Compress artifact
         run: zip --junk-paths ${{ matrix.platform }} target/${{ matrix.target }}/release/clarinet
