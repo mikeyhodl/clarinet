@@ -131,24 +131,24 @@ jobs:
           - os: ubuntu-latest
             platform: linux-x64
             target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-latest
-          #   platform: linux-arm64
-          #   target: aarch64-unknown-linux-gnu
-          # - os: ubuntu-latest
-          #   platform: linux-armv7
-          #   target: armv7-unknown-linux-gnueabihf
-          # - os: ubuntu-latest
-          #   platform: linux-musl-x64
-          #   target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            platform: linux-arm64
+            target: aarch64-unknown-linux-gnu
+          - os: ubuntu-latest
+            platform: linux-armv7
+            target: armv7-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            platform: linux-musl-x64
+            target: x86_64-unknown-linux-musl
           - os: windows-latest
             platform: windows-x64
             target: x86_64-pc-windows-msvc
           - os: macos-latest
             platform: macos-x64
             target: x86_64-apple-darwin
-          # - os: macos-latest
-          #   platform: macos-aarch64-m1
-          #   target: aarch64-apple-darwin
+          - os: macos-latest
+            platform: macos-aarch64-m1
+            target: aarch64-apple-darwin
 
     steps:
       - name: Configure git to use LF (Windows)
@@ -160,14 +160,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # We need to disable the existing toolchain to avoid updating rust-docs
-      # which takes a long time. The fastest way to do this is to rename the
-      # existing folder, as deleting it takes about as much time as not doing
-      # anything and just updating rust-docs.
-      # - name: Rename existing rust toolchain (Windows)
-      #   if: matrix.os == 'windows-latest'
-      #   run: Rename-Item C:\Users\runneradmin\.rustup\toolchains\stable-x86_64-pc-windows-msvc C:\Users\runneradmin\.rustup\toolchains\stable-x86_64-pc-windows-msvc.old
-
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -177,7 +169,7 @@ jobs:
           override: true
           components: rustfmt, rust-src
 
-      - if: matrix.os == 'ubuntu-latest'
+      - if: matrix.os != 'windows-latest'
         run: sudo chown -R $(whoami):$(id -ng) ~/.cargo/
 
       - name: Cache cargo
@@ -188,25 +180,17 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
+            target/${{ matrix.target }}/release/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - name: Compress artifact (Not Windows)
-        if: matrix.os != 'windows-latest'
-        run: zip --junk-paths ${{ matrix.platform }} ./target/${{ matrix.target }}/release/clarinet
-
-      - name: Compress artifact (Windows)
-        if: matrix.os == 'windows-latest'
-        run: Compress-Archive -Path ./target/${{ matrix.target }}/release/clarinet.exe -DestinationPath ${{ matrix.platform }}
-
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.platform }}
-          path: ${{ matrix.platform }}.zip
+          path: ./target/${{ matrix.target }}/release/clarinet*
 
       - name: Unit Tests
         run: cargo test --release --locked --target ${{ matrix.target }}
@@ -218,36 +202,6 @@ jobs:
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
       - name: Prepare cache
         run: cargo xtask pre-cache
-
-      - run: ls target/${{ matrix.target }}/release
-
-      # - name: Remove xtask (Windows)
-      #   if: matrix.os == 'windows-latest'
-      #   run: Remove-Item ./target/${{ matrix.target }}/release/xtask.exe, ./target/${{ matrix.target }}/release/deps/xtask.exe
-
-  # typescript:
-  #   name: TypeScript
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v2
-
-  #   - name: Install Nodejs
-  #     uses: actions/setup-node@v1
-  #     with:
-  #       node-version: 12.x
-
-  #   - run: npm ci
-  #     working-directory: ./editors/code
-
-  #   - run: npm audit || { sleep 10 && npm audit; } || { sleep 30 && npm audit; }
-  #     working-directory: ./editors/code
-
-  # - run: npm run lint
-  #   working-directory: ./editors/code
-
-  # - run: npm run package --scripts-prepend-node-path
-  #   working-directory: ./editors/code
 
   build:
     name: Docker build
