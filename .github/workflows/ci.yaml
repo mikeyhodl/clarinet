@@ -194,15 +194,13 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - run: ls target
-      - run: ls target/x86_64-pc-windows-msvc
-      - run: ls target/x86_64-pc-windows-msvc/release
+      - name: Compress artifact (Not Windows)
+        if: matrix.os != 'windows-latest'
+        run: zip --junk-paths ${{ matrix.platform }} ./target/${{ matrix.target }}/release/clarinet
 
-      - uses: papeloto/action-zip@v1
-        with:
-          files: target/${{ matrix.target }}/release/clarinet
-          recursive: false
-          dest: ${{ matrix.platform }}.zip
+      - name: Compress artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: Compress-Archive -Path ./target/${{ matrix.target }}/release/clarinet.exe -DestinationPath ${{ matrix.platform }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -221,9 +219,11 @@ jobs:
       - name: Prepare cache
         run: cargo xtask pre-cache
 
-      - name: Remove xtask (Windows)
-        if: matrix.os == 'windows-latest'
-        run: Remove-Item ./target/release/xtask.exe, ./target/release/deps/xtask.exe
+      - run: ls target/${{ matrix.target }}/release
+
+      # - name: Remove xtask (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   run: Remove-Item ./target/${{ matrix.target }}/release/xtask.exe, ./target/${{ matrix.target }}/release/deps/xtask.exe
 
   # typescript:
   #   name: TypeScript
