@@ -198,7 +198,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install ${{ matrix.platform }} linker
-        if: matrix.platform == 'linux-arm64' || matrix.platform == 'linux-armv7' || matrix.platform == linux-musl-x64
+        if: matrix.platform == 'linux-arm64' || matrix.platform == 'linux-armv7' || matrix.platform == 'linux-musl-x64'
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.linker_package }}
 
       - name: Build
