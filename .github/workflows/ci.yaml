@@ -32,7 +32,7 @@ jobs:
           access_token: ${{ github.token }}
 
   audit:
-    name: Audit Rust vulnerabilities
+    name: Audit and format
     runs-on: ubuntu-latest
     needs: pre_run
     steps:
@@ -218,7 +218,7 @@ jobs:
         #   CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: ${{ matrix.cc }}
         #   CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: ${{ matrix.cc }}
 
-      - name: Upload artifact
+      - name: Upload artifact to GH Actions
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.platform }}
@@ -232,6 +232,24 @@ jobs:
       - name: Functional Tests
         working-directory: examples/counter
         run: ../../target/${{ matrix.target }}/release/clarinet test .
+
+      - name: Upload Artifacts to GH release (Not Windows)
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os != 'windows-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/clarinet
+          asset_name: ${{ matrix.platform }}
+          tag: ${{ github.ref }}
+
+      - name: Upload Artifacts to GH release (Windows)
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'windows-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/clarinet.exe
+          asset_name: ${{ matrix.platform }}
+          tag: ${{ github.ref }}
 
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
       - name: Prepare cache
@@ -281,8 +299,6 @@ jobs:
       - dist
       - test
       - build
-    outputs:
-      version: ${{ steps.docker_meta.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
