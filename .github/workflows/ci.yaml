@@ -222,7 +222,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.platform }}
-          path: ./target/${{ matrix.target }}/release/clarinet*
+          path: |
+            ./target/${{ matrix.target }}/release/clarinet
+            ./target/${{ matrix.target }}/release/clarinet.exe
 
       - name: Unit Tests
         run: cargo test --release --locked --target ${{ matrix.target }}
