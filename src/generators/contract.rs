@@ -1,6 +1,6 @@
 use super::changes::{Changes, FileCreation, TOMLEdition};
-use std::collections::HashMap;
 use crate::types::ContractConfig;
+use std::collections::HashMap;
 
 pub struct GetChangesForNewContract {
     project_path: String,
@@ -48,10 +48,11 @@ impl GetChangesForNewContract {
 
 ;; public functions
 ;;
-"#, self.contract_name
+"#,
+                self.contract_name
             )
         };
-            
+
         let name = format!("{}.clar", self.contract_name);
         let path = format!("{}/contracts/{}", self.project_path, name);
         let change = FileCreation {

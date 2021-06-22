@@ -10,30 +10,28 @@ mod deno;
 
 pub fn run_tests(files: Vec<String>, include_coverage: bool, watch: bool) {
     match block_on(deno::do_run_tests(files, include_coverage, watch)) {
-      Err(e) => {
-        std::process::exit(1)
-      }
-      _ => {}
+        Err(e) => std::process::exit(1),
+        _ => {}
     };
 }
 
 pub fn create_basic_runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_current_thread()
-      .enable_io()
-      .enable_time()
-      .max_blocking_threads(32)
-      .build()
-      .unwrap()
+        .enable_io()
+        .enable_time()
+        .max_blocking_threads(32)
+        .build()
+        .unwrap()
 }
-  
+
 pub fn block_on<F, R>(future: F) -> R
-  where
+where
     F: std::future::Future<Output = R>,
 {
     let rt = create_basic_runtime();
     rt.block_on(future)
 }
-  
+
 // struct ClaritestTransaction {
 // }
 
